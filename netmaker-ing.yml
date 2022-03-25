@@ -69,7 +69,7 @@ spec:
           service:
             name: netmaker-grpc
             port:
-              number: 80
+              number: 443
   tls:
   - hosts:
     - grpc.netmaker.<path:apps-kv/data/general#DN>

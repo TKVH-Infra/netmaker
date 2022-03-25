@@ -24,7 +24,7 @@ metadata:
   name: netmaker-grpc
 spec:
   ports:
-  - port: 80
+  - port: 443
     protocol: TCP
     targetPort: backend-grpc
   selector: *labels

@@ -33,7 +33,7 @@ spec:
         - name: backend
           containerPort: 8081
         - name: backend-grpc
-          containerPort: 80
+          containerPort: 443
         securityContext:
           privileged: true
         env:
@@ -48,7 +48,7 @@ spec:
             fieldRef:
               fieldPath: status.podIP
         - name: GRPC_SSL
-          value: "off"
+          value: "on"
         - name: SERVER_HTTP_HOST
           value: "api.netmaker.<path:apps-kv/data/general#DN>"
         - name: SERVER_GRPC_HOST
@@ -56,21 +56,24 @@ spec:
         - name: API_PORT
           value: "8081"
         - name: GRPC_PORT
-          value: "80"
+          value: "443"
         - name: CLIENT_MODE
           value: "off"
         - name: MASTER_KEY
-          value: "Unkn0wn!"
-#          valueFrom:
-#            secretKeyRef:
-#              name: netmaker-backend
-#              key: MASTER_KEY
+          valueFrom:
+            secretKeyRef:
+              name: netmaker-backend
+              key: MASTER_KEY
         - name: PLATFORM
           value: "Kubernetes"
         - name: CORS_ALLOWED_ORIGIN
           value: "*"
+        - name: RCE
+          value: "off"
         volumeMounts:
         - name: *part-of
+          mountPath: /root/data
+        - name: netmaker-dnsconfig
           mountPath: /root/config/dnsconfig
         - name: netmaker-backend-secrets
           mountPath: "/mnt/vault"
@@ -92,6 +95,9 @@ spec:
       - name: *part-of
         persistentVolumeClaim:
           claimName: *part-of
+      - name: netmaker-dnsconfig
+        persistentVolumeClaim:
+          claimName: netmaker-dnsconfig
       - name: netmaker-rqlite
         persistentVolumeClaim:
           claimName: netmaker-rqlite

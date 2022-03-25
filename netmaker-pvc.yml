@@ -26,3 +26,17 @@ spec:
   resources:
     requests:
       storage: 5Gi
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: netmaker-dnsconfig
+  annotations:
+    nfs.io/storage-path: "data01/netmaker/dnsconfig"
+spec:
+  storageClassName: managed-nfs-storage
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 5Gi
