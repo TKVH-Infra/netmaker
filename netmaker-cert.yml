@@ -1,0 +1,23 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: netmaker
+  namespace: netmaker
+spec:
+  secretName: netmaker-tls
+  secretTemplate:
+    labels:
+      part-of: netmaker
+  duration: 2160h
+  renewBefore: 360h
+  privateKey:
+    algorithm: RSA
+    encoding: PKCS1
+    size: 4096
+  dnsNames:
+    - '*.netmaker.<path:apps-kv/data/general#DN>'
+    - 'netmaker.<path:apps-kv/data/general#DN>'
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+    group: cert-manager.io

@@ -1,0 +1,103 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: &app "netmaker-backend" ############## VAR
+  labels: &labels ### VAR
+    app: *app
+    part-of: &part-of "netmaker" ############# VAR
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels: *labels
+  template:
+    metadata:
+      labels: *labels
+    spec:
+      serviceAccountName: netmaker
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 1
+            preference:
+              matchExpressions:
+              - key: disktype
+                operator: In
+                values:
+                - ssd
+      containers:
+      - name: *app
+        image: gravitl/netmaker:v0.9.4
+        ports:
+        - name: backend
+          containerPort: 8081
+        - name: backend-grpc
+          containerPort: 80
+        securityContext:
+          privileged: true
+        env:
+        - name: SERVER_API_CONN_STRING
+          value: "api.netmaker.<path:apps-kv/data/general#DN>:443"
+        - name: SERVER_GRPC_CONN_STRING
+          value: "grpc.netmaker.<path:apps-kv/data/general#DN>:443"
+        - name: COREDNS_ADDR
+          value: "netmaker-dns.netmaker"
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: GRPC_SSL
+          value: "off"
+        - name: SERVER_HTTP_HOST
+          value: "api.netmaker.<path:apps-kv/data/general#DN>"
+        - name: SERVER_GRPC_HOST
+          value: "grpc.netmaker.<path:apps-kv/data/general#DN>"
+        - name: API_PORT
+          value: "8081"
+        - name: GRPC_PORT
+          value: "80"
+        - name: CLIENT_MODE
+          value: "off"
+        - name: MASTER_KEY
+          value: "Unkn0wn!"
+#          valueFrom:
+#            secretKeyRef:
+#              name: netmaker-backend
+#              key: MASTER_KEY
+        - name: PLATFORM
+          value: "Kubernetes"
+        - name: CORS_ALLOWED_ORIGIN
+          value: "*"
+        volumeMounts:
+        - name: *part-of
+          mountPath: /root/config/dnsconfig
+        - name: netmaker-backend-secrets
+          mountPath: "/mnt/vault"
+          readOnly: true
+        resources:
+          limits:
+            memory: 256Mi
+          requests:
+            memory: 200Mi
+      - name: rqlite
+        image: rqlite/rqlite
+        ports:
+        - containerPort: 4001
+        - containerPort: 4002
+        volumeMounts:
+        - name: netmaker-rqlite
+          mountPath: /rqlite/file/data
+      volumes:
+      - name: *part-of
+        persistentVolumeClaim:
+          claimName: *part-of
+      - name: netmaker-rqlite
+        persistentVolumeClaim:
+          claimName: netmaker-rqlite
+      - name: netmaker-backend-secrets
+        csi:
+          driver: "secrets-store.csi.k8s.io"
+          readOnly: true
+          volumeAttributes:
+            secretProviderClass: "netmaker-backend"

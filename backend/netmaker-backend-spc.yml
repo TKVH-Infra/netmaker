@@ -1,0 +1,20 @@
+apiVersion: secrets-store.csi.x-k8s.io/v1alpha1
+kind: SecretProviderClass
+metadata:
+  name: netmaker-backend
+spec:
+  provider: vault
+  secretObjects:
+  - secretName: netmaker-backend
+    type: Opaque
+    data: 
+    - objectName: MASTER_KEY
+      key: MASTER_KEY
+  parameters:
+    vaultAddress: 'http://vault.vault:8200'
+    vaultKubernetesMountPath: 'k8s-vault-csi'
+    roleName: netmaker
+    objects: |
+      - objectName: "MASTER_KEY"
+        secretPath: "apps-kv/data/netmaker/config"
+        secretKey: "MASTER_KEY"

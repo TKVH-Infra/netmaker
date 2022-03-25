@@ -1,0 +1,25 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: &app "netmaker"
+  labels: &labels
+    app: *app
+    part-of: &part-of "netmaker"
+spec:
+  selector:
+    matchLabels: *labels
+  replicas: 1
+  template:
+    metadata:
+      labels: *labels
+    spec:
+      containers:
+      - name: *app
+        image: gravitl/netmaker-ui:v0.9.4
+        ports:
+        - name: *app
+          containerPort: 80
+        env:
+        - name: BACKEND_URL
+          value: "https://api.netmaker.<path:apps-kv/data/general#DN>"
